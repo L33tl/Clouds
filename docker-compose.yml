@@ -1,0 +1,30 @@
+services:
+  first:
+    build: ./first
+    container_name: first
+    restart: always
+    networks:
+      - webnet
+  
+  second:
+    build: ./second
+    container_name: second
+    restart: always
+    networks:
+      - webnet
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "8080:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs
+    networks:
+      - webnet
+
+networks:
+  webnet:
