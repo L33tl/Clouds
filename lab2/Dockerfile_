@@ -1,0 +1,21 @@
+# 1
+FROM ubuntu:latest
+
+# 2
+RUN apt-get update && apt-get upgrade
+RUN apt-get install nginx
+
+# 3
+ADD ./lab/static/index.html /home/app/
+
+# 4 & 5
+COPY ./lab/ /home/lab/
+RUN pip install pandas
+
+# 6
+RUN python manage.py migrate
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# 7
+FROM nginx:alpine
+FROM python:3.11
