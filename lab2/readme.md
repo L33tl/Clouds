@@ -174,6 +174,7 @@ docker exec -it web sh
 apt update && apt install iputils-ping
 ping db
 ```
+
 ![alt text](images/accessed_ping.png)
 
 Создадим на каждый свою сеть - `web` и `db` соответственно
@@ -199,6 +200,7 @@ networks:
 ```
 
 Проверим результат `ping`'a на этот раз:
+
 ![alt text](images/failed_ping.png)
 
 
