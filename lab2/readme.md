@@ -147,10 +147,60 @@ CMD ["nginx", "-g", "daemon off;"]
     Будет использоваться 2.5 мощность ядер процессора
 
 
-## Заключение
-Эта лаба была полезна для меня тем, что я посмотрел на частые ошибки, научился на *чужом* опыте. Узнал несколько новых для себя комманд и флагов к ним
-
-
 
 # ⭐
 
+Пусть у нас есть два сервиса, использующих `nginx`, `redis`
+
+`docker-compose.yml`:
+```yml
+services:
+  web:
+    image: nginx
+    container_name: web
+  
+  db:
+    image: redis
+    container_name: db
+```
+Запустим контейнеры и проверим видят ли контейнеры друг друга в сети
+```cmd
+docker-compose up -d
+```
+```cmd
+docker exec -it web sh
+```
+```cmd
+apt update && apt install iputils-ping
+ping db
+```
+![alt text](images/accessed_ping.png)
+
+Создадим на каждый свою сеть - `web` и `db` соответственно
+
+Добавим каждому сервису собственную сеть с драйвером `bridge`, можно было бы указать вместо этого - `none`, но тогда были бы невозможны любые другие сетевые связи:
+```yml
+web:
+  networks:
+    - web_network
+```
+```yml
+db:
+  networks:
+    - db_network
+```
+```yml
+networks:
+  web_network:
+    driver: bridge
+networks:
+  db_network:
+    driver: bridge
+```
+
+Проверим результат `ping`'a на этот раз:
+![alt text](images/failed_ping.png)
+
+
+# Заключение
+Эта лаба была полезна для меня тем, что я посмотрел на частые ошибки, научился на *чужом* опыте. Узнал несколько новых для себя комманд и флагов к ним. Узнал и научился применять разные сетевые настройки контейнеров
