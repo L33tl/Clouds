@@ -121,7 +121,7 @@ sudo apt install ffuf
 ```sh
 ffuf -w ./wordlists/common.txt -u https://project1.local/FFUZ
 ```
-![FUZZ](./images/FUZZ.png)
+![FUZZ](./images/fuzz.png)
 
 Он нашёл только директорию `media` и файл `index.html`
 
