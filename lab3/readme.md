@@ -172,3 +172,93 @@ jobs:
 
 # ⭐
 
+Напишем `CI/CD` файл, для которого потребуется токен api, например, для `openweathermap`
+
+```yml
+name: OWM Project
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+  runs-on: ubuntu-latest
+  strategy:
+    matrix:
+      python-version: [ 3.10, 3.11 ]
+  
+  steps:
+    - name: Checkout repository
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }} 
+    - uses: actions/setup-python@v3
+    with:
+      python-version: ${{ matrix.python-version }}
+    
+    - name: Install pytest
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
+    - name: Run unittests
+      run: |
+        pytest
+      env:
+        OWM_TOKEN: ${{ secrets.OWM_TOKEN }}
+```
+
+Минусом такого подхода является возможность получить токен из логов. Судя по документации `github`'a, до того как попасть в логи токены редактируются, но у злоумышленника всё равно остается возможность помешать этому.
+Отрывок из документации:
+```
+Злоумышленник может получить все украденные секреты или другие данные от средства выполнения тестов. Чтобы предотвратить случайное раскрытие секрета, GitHub Actions автоматически скрывает секреты, напечатанные в журнале, но это не является реальной границей безопасности, так как секреты могут быть намеренно отправлены в журнал. Например, скрытые секреты можно перенести с помощью echo ${SOME_SECRET:0:4}; echo ${SOME_SECRET:4:200};. Кроме того, так как злоумышленник может выполнять произвольные команды, он может использовать HTTP-запросы для отправки секретов или других данных репозитория на внешний сервер.
+```
+
+На данный момент Hashicorp Vault доступен в России только в self-hosted версии, помучившись с установкой его на сервер, я решил ископльзовать секретохранилище `bitwarden`. Он шифрует передачу токена, и он становится доступен только на сервере запуска и сервере-хранилище. Для его использования достаточно создать аккаунт на сайте, добавить необходимые секреты и передать `ACCESS-TOKEN` и ссылки на ключи в `yml` файл
+
+![bitwarden img](./images/bitwarden.png)
+
+Изменим `build-test.yml`:
+```yml
+name: OWM Project
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+  runs-on: ubuntu-latest
+  strategy:
+    matrix:
+      python-version: [ 3.10, 3.11 ]
+  
+  steps:
+    - name: Get Secrets
+      uses: bitwarden/sm-action@v2
+      with:
+        access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+        secrets: |
+          sad080ds-87as-h3kh-as8d-aeafay72f0ff > OWM_TOKEN
+
+    - name: Checkout repository
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }} 
+    - uses: actions/setup-python@v3
+    with:
+      python-version: ${{ matrix.python-version }}
+
+    - name: Install pytest
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
+    - name: Run unittests
+      run: |
+        pytest
+      env:
+        OWM_TOKEN: ${{ env.OWM_TOKEN }}
+```
+
+Теперь остаётся лишь добавить `ACCESS_TOKEN` в `secrets`. Да его так же могут украть, но при правильной работе с ним (например используя многофакторную аунтификацию) риск скомпромитировать важные ключи становится минимальным. Также благодаря логам `Bitwarden`'a появляется возможность провести расследование кражи токена
+
+# Заключение
+Я разобрался с частыми ошибками при работе с `yml` файлами для `CI/CD`, на примере работы с `Github Actions`. Многие из описанных ошибок показались мне неочевидными
