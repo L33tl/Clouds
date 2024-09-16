@@ -1,0 +1,40 @@
+name: Clouds Lab3 Workflow
+
+on: [ commit ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: ssh user@server "deploy-script.sh"
+        env:
+          DB_PASSWORD: "secretgiraffe"
+  
+  all_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unit tests
+        run: ./build.sh
+      - name: Integration tests
+        run: ./integration-tests.sh
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Node.js
+        run: curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+      - name: Install dependencies
+        run: npm install
+
+  huge_pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build
+        run: ./build.sh
+      - name: Unit tests
+        run: ./unit-tests.sh
+      - name: Integration tests
+        run: ./integration-tests.sh
+      - name: Deploy
+        run: ./deploy.sh
