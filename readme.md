@@ -6,6 +6,7 @@
 
 ## [3 CI/CD Practices](/lab3/)
 
+## [Облачные лабы](/heaven/README.md/)
 
 ---
 
