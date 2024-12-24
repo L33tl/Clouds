@@ -8,6 +8,8 @@
 
 ## [Облачные лабы](/heaven/README.md/)
 
+## [Облачная теория](/heaven/theory_report.md)
+
 ---
 
 ### Thx
